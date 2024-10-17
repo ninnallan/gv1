@@ -1,0 +1,103 @@
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+public class Car
+{
+    public string Model { get; set; }
+    public int Year { get; set; }
+    public string Color { get; set; }
+    public string VIN { get; set; }
+    public string Owner { get; set; }
+
+    public Car(string model, int year, string color, string vin, string owner)
+    {
+        Model = model;
+        Year = year;
+        Color = color;
+        VIN = vin;
+        Owner = owner;
+    }
+
+    public override string ToString()
+    {
+        return $"Model: {Model}, Year: {Year}, Color: {Color}, VIN: {VIN}, Owner: {Owner}";
+    }
+}
+
+public interface ICarRecordSystem
+{
+    void AddCar(Car car);
+    Car FindCar(string vin);
+    string ListAllCars();
+    void PrintAllCars();
+}
+
+public class CarRecordSystem : ICarRecordSystem
+{
+    private Dictionary<string, Car> cars = new Dictionary<string, Car>();
+
+    public void AddCar(Car car)
+    {
+        if (cars.ContainsKey(car.VIN))
+        {
+            Console.WriteLine($"A car with VIN {car.VIN} already exists.");
+        }
+        else
+        {
+            cars[car.VIN] = car;
+        }
+    }
+
+    public Car FindCar(string vin)
+    {
+        if (cars.ContainsKey(vin))
+        {
+            return cars[vin];
+        }
+        else
+        {
+            throw new ArgumentException("Car not found.");
+        }
+    }
+
+    public string ListAllCars()
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (var car in cars.Values)
+        {
+            sb.AppendLine(car.ToString());
+        }
+        return sb.ToString();
+    }
+
+    public void PrintAllCars()
+    {
+        Console.WriteLine(ListAllCars());
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        CarRecordSystem carSystem = new CarRecordSystem();
+
+        carSystem.AddCar(new Car("Tesla Model S", 2020, "Red", "VIN1234", "Alice"));
+        carSystem.AddCar(new Car("Toyota Corolla", 2018, "Blue", "VIN5678", "Bob"));
+        carSystem.AddCar(new Car("Ford Mustang", 2019, "Black", "VIN91011", "Charlie"));
+
+        try
+        {
+            Car foundCar = carSystem.FindCar("VIN5678");
+            Console.WriteLine("Found car: " + foundCar.ToString());
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        carSystem.PrintAllCars();
+    }
+}

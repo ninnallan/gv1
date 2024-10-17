@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace GenericRepositoryPattern
+{
+    
+    public interface IEntity
+    {
+        int Id { get; set; }
+    }
+
+    
+    public interface IRepository<T> where T : IEntity
+    {
+        T GetById(int id);
+        IEnumerable<T> GetAll();
+        void Add(T entity);
+        void Update(T entity);
+        void Delete(int id);
+    }
+
+
+
+    public class BaseRepository<T> : IRepository<T> where T : class, IEntity
+    {
+        protected List<T> _entities = new List<T>();
+        protected int _nextId = 1;
+
+        public virtual T GetById(int id)
+        {
+            return _entities.FirstOrDefault(e => e.Id == id);
+        }
+
+        public virtual IEnumerable<T> GetAll()
+        {
+            return _entities;
+        }
+
+        public virtual void Add(T entity)
+        {
+            if (entity == null)
+                return;
+
+            entity.Id = _nextId++;
+            _entities.Add(entity);
+        }
+
+        public virtual void Update(T entity)
+        {
+            var existingEntity = GetById(entity.Id);
+            if (existingEntity != null)
+            {
+                _entities.Remove(existingEntity);
+                _entities.Add(entity);
+            }
+        }
+
+        public virtual void Delete(int id)
+        {
+            var entity = GetById(id);
+            if (entity != null)
+            {
+                _entities.Remove(entity);
+            }
+        }
+    }
+
+    public class Customer : IEntity
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+
+        public override string ToString()
+        {
+            return $"ID: {Id}, Name: {Name}, Email: {Email}";
+        }
+    }
+
+  
+    public class CustomerRepository : BaseRepository<Customer>
+    {
+        public Customer GetByEmail(string email)
+        {
+            return _entities.FirstOrDefault(c => c.Email == email);
+        }
+    }
+
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            CustomerRepository customerRepository = new CustomerRepository();
+
+
+            customerRepository.Add(new Customer { Name = "Gvantsa Mantashashvili", Email = "gvantsa@example.com" });
+            customerRepository.Add(new Customer { Name = "Anni", Email = "anni@example.com" });
+
+
+            Console.WriteLine("All Customers:");
+            foreach (var customer in customerRepository.GetAll())
+            {
+                Console.WriteLine(customer);
+            }
+
+
+            Console.WriteLine("Search by email 'gvantsa@example.com': ");
+            var customerByEmail = customerRepository.GetByEmail("gvantsa@example.com");
+            Console.WriteLine(customerByEmail);
+
+
+            var customerToUpdate = customerRepository.GetById(1);
+            customerToUpdate.Name = "Gvantsaaa2";
+            customerRepository.Update(customerToUpdate);
+
+
+            Console.WriteLine("Updated Customer: ");
+            Console.WriteLine(customerRepository.GetById(1));
+
+
+            customerRepository.Delete(2);
+
+
+            Console.WriteLine("\nAll Customers After Deletion: ");
+            foreach (var customer in customerRepository.GetAll())
+            {
+                Console.WriteLine(customer);
+            }
+
+
+        }
+    }
+ }
+
